@@ -2,7 +2,9 @@
 -- joins
 -- set theory clauses
 -- filtering joins
--- subqueries
+-- case when
+
+
 
 --------------------------------- misc: clauses, count, distinct, like 
 
@@ -130,62 +132,68 @@ from
 );
 
 
-------------------------------------------- subqueries
+-------------------------------------- case when function
 
--- subquery in where clause
--- bonuses that are greater than avg
+-- basic case when
+-- create column to categorize total due amt
 select
-	*
+	SalesOrderID,
+	TotalDue,
+	case
+		when TotalDue < 100
+		and TerritoryID = 1 then 'less than 100 in T1'
+		when TotalDue BETWEEN 100 and 500
+		and TerritoryID = 1 then 'between 100 and 500 in T1'
+		else 'greater than 500 or not in T1'
+	end as total_due_description
 from
-	Sales.SalesPerson
-where
-	Bonus > (
-		select AVG(bonus)
-	from
-		sales.SalesPerson);
-	
--- subquery in select clause
--- number of sales people per territory
+	sales.SalesOrderHeader
+
+
+-- columns for count of ids that match conditions
+-- counts of 2011 and 2012 orders by region
+-- dates are inclusive
 select
-	distinct st.name,
-	(
-		select count(*)
-	from
-		Sales.SalesPerson sp
-	where
-		st.territoryid = sp.TerritoryID) as num
+	TerritoryID,
+	count(case when orderdate BETWEEN '2011-01-01' and '2011-12-31'  then SalesOrderID end) as '2011 orders',
+	count(case when orderdate BETWEEN '2012-01-01' and '2012-12-31' then SalesOrderID end) as '2012 orders'
 from
-	sales.SalesTerritory st;
-	
--- subquery inside the from clause
+	sales.SalesOrderHeader
+group by
+	TerritoryID
+order by TerritoryID
+
+-- using case when with multiple conditions
+-- counts of sales in 2011 and 2012 by territory id where sales person id is not null
 select
-	st.name,
-	subquery.cnt
+	TerritoryID,
+	sum(case when orderdate BETWEEN '2011-01-01' and '2011-12-31' and SalesPersonID is not null then 1 end) as '2011 orders'
+	sum(case when orderdate BETWEEN '2012-01-01' and '2012-12-31' and SalesPersonID is not null then 1 end) as '2012 orders'
 from
-	sales.SalesTerritory st
-inner join (
-	select
-		count(*) as cnt,
-		sp.Territoryid as Territoryid
-	from
-		sales.salesperson sp
-	group by
-		TerritoryID) subquery on
-	st.TerritoryID = subquery.Territoryid
-	
--- the orders of each product that had the max order qty	
+	sales.SalesOrderHeader
+group by
+	TerritoryID
+order by TerritoryID
+
+-- avg total due in each territory id for 2011 and 2012
 select
-	sod.SalesOrderID, 
-	sod.ProductID,
-	sod.OrderQty
+	TerritoryID,
+	avg(case when orderdate BETWEEN '2011-01-01' and '2011-12-31'  then TotalDue end) as '2011 orders',
+	avg(case when orderdate BETWEEN '2012-01-01' and '2012-12-31' then TotalDue end) as '2012 orders'
 from
-	sales.SalesOrderDetail sod
-inner join (
-		select max(OrderQty) max_qty,
-		ProductID
-	from
-		sales.SalesOrderDetail
-	group by
-		ProductID) sq on
-	sod.OrderQty = sq.max_qty
-	and sod.ProductID = sq.productid;
+	sales.SalesOrderHeader
+group by
+	TerritoryID
+order by TerritoryID
+
+
+
+
+
+
+
+
+
+
+
+
