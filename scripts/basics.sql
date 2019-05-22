@@ -1,4 +1,6 @@
--- misc: clauses, count, distinct, like 
+-- misc: basic clauses, count, distinct, like 
+-- math functions
+-- date functions
 -- joins
 -- set theory clauses
 -- filtering joins
@@ -6,27 +8,11 @@
 
 
 
---------------------------------- misc: clauses, count, distinct, like 
+--------------------------------- misc: basic clauses, distinct, count, like 
 
 -- top 100 rows in sales.customer table
 select top 100 * 
 from Sales.Customer;
-
--- distinct territoryids
-select distinct  TerritoryID
-from sales.Customer;
-
--- count of number of rows in sales.customer
-select count(*)
-from sales.customer;
-
--- count of number of non missing storeids
-select count(StoreID) as number_non_missing_storeID
-from AdventureWorks2017.Sales.customer;
-
--- count of number of unique storeids
-select count(distinct StoreID)
-from sales.customer;
 
 -- illustration of where clause
 SELECT *
@@ -38,29 +24,6 @@ AND OrderQty <= 500
 OR SalesOrderID = 43659 
 AND OrderQty in (1);
 
--- like or not like to search for pattern in a column
-select top 100 * 
-from sales.vSalesPerson
-where FirstName like ('S%') 
-or FirstName like ('%n')
-or FirstName like ('Garre_t');
-
--- aggregate functions
-select AVG(LineTotal) as avg_total,
-	   MIN(LineTotal) as min_total,
-	   sum(LineTotal) as sum_total
-from sales.SalesOrderDetail;
-
--- divide by integer and you get integer in return
-select (10/3);
-select (10/3.0);
-
--- illustration of order by clause
-select *
-from sales.vSalesPerson
-ORDER BY FirstName desc, LastName;
-
-
 -- illustration of group by clause to perform operations by group
 -- total sale per sales order id
 select SalesOrderID, 
@@ -71,6 +34,82 @@ from sales.SalesOrderDetail
 GROUP BY SalesOrderID
 HAVING sum(OrderQty) < 20 -- use having when using aggregate functions
 ORDER BY sum(LineTotal); -- order by has to go last
+
+-- illustration of order by clause
+select *
+from sales.vSalesPerson
+ORDER BY FirstName desc, LastName;
+
+-- distinct territoryids
+select distinct  TerritoryID
+from sales.Customer;
+
+-- count of number of rows in sales.customer
+select count(*)
+from sales.customer;
+
+-- count of number of non missing StoreIds
+select count(StoreID) as number_non_missing_storeID
+from AdventureWorks2017.Sales.customer;
+
+-- count of number of unique storeids
+select count(distinct StoreID)
+from sales.customer;
+
+-- like or not like to search for pattern in a column
+select top 100 * 
+from sales.vSalesPerson
+where FirstName like ('S%') 
+or FirstName like ('%n')
+or FirstName like ('Garre_t');
+
+----------------------------------- math functions
+
+-- aggregate functions
+select AVG(LineTotal) as avg_total,
+	   MIN(LineTotal) as min_total,
+	   sum(LineTotal) as sum_total
+from sales.SalesOrderDetail;
+
+-- math functions
+select
+	top 1000 totaldue,
+	abs(totaldue) as absolute_value,
+	square(totaldue) as square_value,
+	sqrt(totaldue) as square_root,
+	log(totaldue) as natural_log,
+	ceiling(totaldue) as next_highest_int,
+	floor(totaldue) as next_lowest_int,
+	round(TotalDue, 1) as round_to_1_decimal,
+	round(TotalDue, -1) as round_to_10s, -- round to tens place
+	round(TotalDue, 0, 1) as truncate_value -- truncate
+from
+	sales.SalesOrderHeader
+	
+-- divide by integer and you get integer in return
+select (10/3);
+select (10/3.0);
+	
+----------------------------------- date functions
+
+-- difference between two dates
+select
+	OrderDate,
+	ShipDate,
+	datediff(DD, OrderDate, ShipDate) -- can also use MM, YY , HH
+from
+	sales.SalesOrderHeader;
+
+-- add time to date
+select
+	OrderDate,
+	ShipDate,
+	dateadd(DD, 3, ShipDate) as expected_receive_date -- can also use MM, YY , HH
+from
+	sales.SalesOrderHeader;
+
+select EXTRACT(month from orderdate)
+from sales.SalesOrderHeader;
 
 
 ------------------------------------ joins
