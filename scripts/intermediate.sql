@@ -1,8 +1,8 @@
 -- dealing with null values
 -- subqueries
--- window functions.
+-- window functions
 
--------------------------------- dealing with null values
+--------------------------------- dealing with null values ---------------------------------
 
 -- replace null values
 SELECT
@@ -23,7 +23,7 @@ FROM
 where
 	CarrierTrackingNumber is null ;
 	
-------------------------------------------- subqueries
+--------------------------------- subqueries ---------------------------------
 
 -- subquery in select clause
 -- number of sales people per territory
@@ -176,20 +176,45 @@ left join Sales.SalesPerson sp on
 	sales_cte.salespersonid = sp.BusinessEntityID
 	
 
------------------------------------------------ window functions
+--------------------------------- window functions ---------------------------------
 
 	
 --OVER() clause: pass an aggregate function down a data set like subquery in select but faster	
 -- processed after entire query except order by 
+-- avg total due
+select 
+	SalesOrderID,
+	TotalDue,
+	avg(totaldue) over() as overall_avg
+from sales.SalesOrderHeader;
 
 
-
--- rank
+-- rank()
 -- rank info according to order by variable
+-- rank of stores by total due
+select 
+	c.storeid,
+	sum(TotalDue),
+	rank() over(order by sum(soh.TotalDue)  desc) as total_due_rank
+FROM sales.SalesOrderHeader as soh
+inner join sales.Customer as c
+	on soh.CustomerID = c.CustomerID
+group by c.storeid;
 
 -- partion by()
 -- calc separate values for different categories. same col diff calc
 -- separate windows based on columns you want to divide resutls
+select
+	salesorderid,
+	SalesPersonID,
+	CustomerID,
+	TotalDue,
+	avg(TotalDue) over(partition by SalesPersonID,
+	CustomerID) as avg_due_by_sales_person_customer
+from
+	sales.SalesOrderHeader
+where SalesPersonID is not null;
+
 
 
 -- sliding window functions
@@ -200,7 +225,18 @@ left join Sales.SalesPerson sp on
 		-- unbounded predceding: include every row since the beg.
 		-- unbounded following: include every row since the end
 		-- current row: stop calc at current row
-
+select
+	salesorderid,
+	OrderDate,
+	round(TotalDue, 0) as total_due,
+	sum(round(TotalDue, 0)) over(order by OrderDate
+	rows between unbounded preceding and current row) as cumulative_sum,
+	-- sd calc seems off. double check this later
+	stdev(round(TotalDue, 0)) over(order by OrderDate
+	rows between 2 preceding and current row ) as rolling_sd_2 -- prev 2 rows and current included
+from
+	sales.SalesOrderHeader
+where SalesPersonID = 274;
 
 
 
