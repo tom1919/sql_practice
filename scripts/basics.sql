@@ -1,14 +1,19 @@
 -- misc: basic clauses, count, distinct, like 
+-- casting data types 
 -- math functions
 -- date functions
--- joins
+-- joins ------------------------ todo
 -- set theory clauses
 -- filtering joins
 -- case when
 
 
 
---------------------------------- misc: basic clauses, distinct, count, like 
+--------------------------------- misc: basic clauses, distinct, count, like ---------------------------------
+
+-- primary key: cols that uniquely identifies a row. its unique and non nul
+-- foreign key: col that reference another row via a unique key in same or other table. 
+	-- foreign key values are restricted to the ones in the referenced col
 
 -- top 100 rows in sales.customer table
 select top 100 * 
@@ -40,7 +45,7 @@ select *
 from sales.vSalesPerson
 ORDER BY FirstName desc, LastName;
 
--- distinct territoryids
+-- distinct territoryids including nulls
 select distinct  TerritoryID
 from sales.Customer;
 
@@ -52,7 +57,7 @@ from sales.customer;
 select count(StoreID) as number_non_missing_storeID
 from AdventureWorks2017.Sales.customer;
 
--- count of number of unique storeids
+-- count of number of unique storeids including null
 select count(distinct StoreID)
 from sales.customer;
 
@@ -63,12 +68,27 @@ where FirstName like ('S%')
 or FirstName like ('%n')
 or FirstName like ('Garre_t');
 
------------------------------------ math functions
+--------------------------------- casting data types ---------------------------------
 
--- aggregate functions
+-- common data types: numeric, character, date/time, boolean
+-- others: arrays, binary, geometric, xml, json...
+-- also bunch of diff numeric types
+
+select 
+	SubTotal,
+	cast(subtotal as integer) subtotal_int, -- subtotal::integer in postgres
+	 subtotal_int2
+from sales.SalesOrderHeader;
+
+
+--------------------------------- math functions ---------------------------------
+
+-- aggregate math functions
 select AVG(LineTotal) as avg_total,
 	   MIN(LineTotal) as min_total,
-	   sum(LineTotal) as sum_total
+	   sum(LineTotal) as sum_total,
+	   stdev(LineTotal) as standard_deviation,
+	   var(LineTotal) as sample_variance
 from sales.SalesOrderDetail;
 
 -- math functions
@@ -82,15 +102,26 @@ select
 	floor(totaldue) as next_lowest_int,
 	round(TotalDue, 1) as round_to_1_decimal,
 	round(TotalDue, -1) as round_to_10s, -- round to tens place
-	round(TotalDue, 0, 1) as truncate_value -- truncate
+	round(TotalDue, 0, 1) as truncate_value -- truncate to first whole digit
 from
-	sales.SalesOrderHeader
+	sales.SalesOrderHeader;
 	
 -- divide by integer and you get integer in return
 select (10/3);
 select (10/3.0);
+
+-- histogram of total due. number of sales in each bin of total due
+select
+	round(TotalDue, -3) as total_due_bin,
+	count(*) as frequency
+from
+	sales.SalesOrderHeader
+group by
+	round(TotalDue, -3)
+order by
+	round(TotalDue, -3)
 	
------------------------------------ date functions
+--------------------------------- date functions ---------------------------------
 
 -- difference between two dates
 select
@@ -112,14 +143,17 @@ select EXTRACT(month from orderdate)
 from sales.SalesOrderHeader;
 
 
------------------------------------- joins
+--------------------------------- joins ---------------------------------
 
 -- joining data in sql datacamp course
 -- intro to joins section
 -- outer and cross joins section
 -- completed but didn't save. redo it later
 
-------------------------------------- set theory clasues
+-- inner join
+
+
+--------------------------------- set theory clasues ---------------------------------
 
 -- union. row bind and removes dupes. all rows that are in either tables
 select FirstName from Sales.vSalesPerson -- 17 rows
@@ -142,7 +176,7 @@ select DISTINCT FirstName from HumanResources.vEmployee -- 224 distinct rows / 2
 EXCEPT -- 207 rows = 224 - 17
 select  DISTINCT FirstName from Sales.vSalesPerson -- 17 rows
 
--------------------------------------- filtering joins
+--------------------------------- filtering joins ---------------------------------
 
 -- semi join. rows in first table that are also in second table
  SELECT
@@ -171,7 +205,7 @@ from
 );
 
 
--------------------------------------- case when function
+--------------------------------- case when function ---------------------------------
 
 -- basic case when
 -- create column to categorize total due amt
