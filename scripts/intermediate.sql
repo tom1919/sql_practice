@@ -1,6 +1,7 @@
 -- dealing with null values
--- subqueries
+-- subqueries, CTE, temp tables
 -- window functions
+
 
 --------------------------------- dealing with null values ---------------------------------
 
@@ -23,7 +24,8 @@ FROM
 where
 	CarrierTrackingNumber is null ;
 	
---------------------------------- subqueries ---------------------------------
+
+--------------------------------- subqueries, CTE, temp tables ---------------------------------
 
 -- subquery in select clause
 -- number of sales people per territory
@@ -166,6 +168,7 @@ group by
 	)
 
 -- join sales cte
+-- useful if the table is re-used multiple times
 select
 	sales_cte.salespersonid,
 	sales_cte.total_sales,
@@ -175,6 +178,32 @@ from
 left join Sales.SalesPerson sp on
 	sales_cte.salespersonid = sp.BusinessEntityID
 	
+-- temp table
+drop table if exists total_sales;
+
+select
+	soh.SalesPersonID,
+	sum(soh.SubTotal) as total_sales into
+		total_sales
+	from
+		sales.SalesOrderHeader soh
+	where
+		year(OrderDate) = (
+		select
+			max(year(orderdate))
+		from
+			sales.SalesOrderHeader)
+	group by
+		soh.SalesPersonID
+
+select
+	sq2.salespersonid,
+	sq2.total_sales,
+	sp.SalesQuota
+from
+	total_sales as sq2
+left join Sales.SalesPerson sp on
+	sq2.salespersonid = sp.BusinessEntityID
 
 --------------------------------- window functions ---------------------------------
 
@@ -237,15 +266,6 @@ select
 from
 	sales.SalesOrderHeader
 where SalesPersonID = 274;
-
-
-
-
-
-
-
-
-
 
 
 
