@@ -2,7 +2,7 @@
 -- casting data types 
 -- math functions
 -- date functions
--- joins ------------------------ todo
+-- joins 
 -- set theory clauses
 -- filtering joins
 -- case when
@@ -145,14 +145,71 @@ from sales.SalesOrderHeader;
 
 --------------------------------- joins ---------------------------------
 
--- joining data in sql datacamp course
--- intro to joins section
--- outer and cross joins section
--- completed but didn't save. redo it later
-
 -- inner join
+-- only keep rows where there is a key match on both tables
+select s.name, c.CustomerID
+from sales.Customer as c
+inner join sales.store as s 
+ on c.StoreID = s.BusinessEntityID
+ order by s.name
+ 
+-- self join
+-- compare values in a column with other values in the same column in the same table
+-- orders that shipped to the same address. 19,816 orders 
+select
+	DISTINCT
+	soh1.SalesOrderID,
+	--soh2.SalesOrderID,
+	--soh2.CustomerID,
+	--soh2.CustomerID,
+	soh1.ShipToAddressID as add1,
+	soh2.ShipToAddressID as add2
+from
+	sales.SalesOrderHeader as soh1
+inner join sales.SalesOrderHeader as soh2 on
+	soh1.ShipToAddressID = soh2.ShipToAddressID
+	and soh1.SalesOrderID <> soh2.SalesOrderID
+order by add1
 
+-- left join
+-- keep all rows on the left table
+-- total sales for each customer
+select
+	c.CustomerID,
+	sum(subtotal)
+from
+	sales.Customer as c
+left join sales.SalesOrderHeader as soh on
+	c. CustomerID = soh.CustomerID
+group by
+	c.CustomerID
 
+-- full join
+-- keep all rows on all tables
+select 
+	c.CustomerID,
+	s.name as 'store_name',
+	sp.BusinessEntityID as sales_personID
+from sales.Customer as c 
+	full join sales.store as s on 
+	c.StoreID = s.BusinessEntityID
+	full join sales.SalesPerson as sp on
+	s.SalesPersonID = sp.BusinessEntityID
+	 
+
+-- cross join
+-- each row from one input is matched with all rows from the other
+select
+	sp.BusinessEntityID as sales_person_id,
+	st.territoryid,
+	name 
+	--st.CostYTD
+from
+	sales.SalesPerson as sp
+cross join sales.SalesTerritory as st
+order by sales_person_id
+	
+	
 --------------------------------- set theory clasues ---------------------------------
 
 -- union. row bind and removes dupes. all rows that are in either tables
