@@ -1,7 +1,5 @@
 -- misc: basic clauses, count, distinct, like 
--- casting data types 
 -- math functions
--- date functions
 -- joins 
 -- set theory clauses
 -- filtering joins
@@ -68,19 +66,6 @@ where FirstName like ('S%')
 or FirstName like ('%n')
 or FirstName like ('Garre_t');
 
---------------------------------- casting data types ---------------------------------
-
--- common data types: numeric, character, date/time, boolean
--- others: arrays, binary, geometric, xml, json...
--- also bunch of diff numeric types
-
-select 
-	SubTotal,
-	cast(subtotal as integer) subtotal_int, -- subtotal::integer in postgres
-	 subtotal_int2
-from sales.SalesOrderHeader;
-
-
 --------------------------------- math functions ---------------------------------
 
 -- aggregate math functions
@@ -120,29 +105,8 @@ group by
 	round(TotalDue, -3)
 order by
 	round(TotalDue, -3)
+
 	
---------------------------------- date functions ---------------------------------
-
--- difference between two dates
-select
-	OrderDate,
-	ShipDate,
-	datediff(DD, OrderDate, ShipDate) -- can also use MM, YY , HH
-from
-	sales.SalesOrderHeader;
-
--- add time to date
-select
-	OrderDate,
-	ShipDate,
-	dateadd(DD, 3, ShipDate) as expected_receive_date -- can also use MM, YY , HH
-from
-	sales.SalesOrderHeader;
-
-select EXTRACT(month from orderdate)
-from sales.SalesOrderHeader;
-
-
 --------------------------------- joins ---------------------------------
 
 -- inner join
