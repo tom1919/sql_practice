@@ -1,9 +1,23 @@
--- dealing with null values
+-- casting data types
+-- working with null values
+-- working with text values
+-- working with date values
 -- subqueries, CTE, temp tables
 -- window functions
 
+--------------------------------- casting data types ---------------------------------
 
---------------------------------- dealing with null values ---------------------------------
+-- common data types: numeric, character, date/time, boolean
+-- others: arrays, binary, geometric, xml, json...
+-- also bunch of diff numeric types
+
+select 
+	SubTotal,
+	cast(subtotal as integer) subtotal_int, -- subtotal::integer in postgres
+	 subtotal_int2
+from sales.SalesOrderHeader;
+
+--------------------------------- working with null values ---------------------------------
 
 -- replace null values
 SELECT
@@ -24,6 +38,83 @@ FROM
 where
 	CarrierTrackingNumber is null ;
 	
+
+--------------------------------- working with text values ---------------------------------
+
+select top 100 * from person.Address
+
+-- trim / remove specified characters
+select DISTINCT addressline1, 
+trim('0123456789 #/.,-' from AddressLine1) as street_name
+from person.Address;
+
+-- make text lower case and match pattern
+select *
+from person.Address
+where lower(AddressLine1) like ('%c_nnor%'); -- % matches one or more char, _ matches 1 char
+
+-- concatenate strings. trim leading spaces
+select ltrim(CONCAT(AddressLine1, ', ', city)) as address
+from person.Address;
+
+-- subset n characters of a string
+select DISTINCT addressline1, 
+left(addressline1, 5) as first_5_chars
+from person.Address;
+
+
+--------------------------------- working with date values ---------------------------------
+
+-- cast datetime to date
+select
+	OrderDate
+from
+	sales.SalesOrderHeader
+where
+	cast(OrderDate as date) = '2011-05-31';
+
+-- difference between two dates as whole unit (eg. months, days , years)
+select
+	OrderDate,
+	ShipDate,
+	datediff(DD, OrderDate, ShipDate) as diff -- can also use MM, YY , HH
+from
+	sales.SalesOrderHeader;
+
+-- add time to date
+select
+	OrderDate,
+	ShipDate,
+	dateadd(DD, 3, ShipDate) as expected_receive_date -- can also use MM, YY , HH
+from
+	sales.SalesOrderHeader;
+
+-- return specified part of a date
+select datepart(month, orderdate) -- can also do year, quarter, dayofyear, day, week, weekday etc.
+from sales.SalesOrderHeader;
+
+-- return specified part of a date
+select DATE_TRUNC(month, orderdate) -- can also do year, quarter, dayofyear, day, week, weekday etc.
+from sales.SalesOrderHeader;
+
+-- select previous record
+-- also theres lead() for subsequent row
+-- days between orders
+select
+	orderdate,
+	previous_date,
+	datediff(DD,  previous_date, orderdate) as day_diff
+from
+	(
+	select
+		OrderDate,
+		lag(orderdate) OVER (
+	order by
+		orderdate) AS previous_date
+	from
+		sales.SalesOrderHeader ) as sub_q
+order by day_diff desc;
+
 
 --------------------------------- subqueries, CTE, temp tables ---------------------------------
 
