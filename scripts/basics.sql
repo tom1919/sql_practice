@@ -59,12 +59,16 @@ from AdventureWorks2017.Sales.customer;
 select count(distinct StoreID)
 from sales.customer;
 
+
 -- like or not like to search for pattern in a column
-select top 100 * 
-from sales.vSalesPerson
-where FirstName like ('S%') 
-or FirstName like ('%n')
-or FirstName like ('Garre_t');
+ select
+	top 100 *
+from
+	sales.vSalesPerson
+where
+	FirstName like ('S%') -- % matches zero more characters
+	or FirstName like ('%n')
+	or FirstName like ('Garre_t'); -- _ matches one character
 
 --------------------------------- math functions ---------------------------------
 
