@@ -358,6 +358,91 @@ from
 	sales.SalesOrderHeader
 where SalesPersonID = 274;
 
+-- percentile
+select
+	SubTotal,
+	CurrencyRateID,
+	SalesPersonID,
+	TerritoryID,
+	case
+		when subtotal > PERCENTILE_CONT(.98) WITHIN GROUP (
+		order by SubTotal) over() then PERCENTILE_CONT(.98) WITHIN GROUP (
+		order by SubTotal) over()
+		when subtotal < PERCENTILE_CONT(.02) WITHIN GROUP (
+		order by SubTotal) over() then PERCENTILE_CONT(.05) WITHIN GROUP (
+		order by SubTotal) over()
+		else SubTotal
+	end as capped_subtotal
+from
+	sales.SalesOrderHeader
+
+	
+	
+------------------------------- grouped z score-------------------------------------
+select
+	*,
+	case
+		when cap_z_cap3_z > 3 then 3
+		when cap_z_cap3_z < -3 then -3
+		else cap_z_cap3_z
+	end as cap_z_cap3_z_cap3
+from
+	(
+	select
+		*,
+		case
+			when stdev(cap_z_cap3) over (PARTITION by CurrencyRateID,
+			TerritoryID) = 0 then 0
+			else (cap_z_cap3 - avg(cap_z_cap3) over(PARTITION by CurrencyRateID,
+			TerritoryID)) / stdev(cap_z_cap3) over (PARTITION by CurrencyRateID,
+			TerritoryID)
+		end as cap_z_cap3_z
+	from
+		(
+		select
+			*,
+			case
+				when cap_z > 3 then 3
+				when cap_z < -3 then -3
+				else cap_z
+			end as cap_z_cap3
+		from
+			(
+			select
+				*,
+				avg(capped_subtotal) over(PARTITION by CurrencyRateID,
+				SalesPersonID) as group_avg,
+				stdev(capped_subtotal) over(PARTITION by CurrencyRateID,
+				SalesPersonID) as group_sd,
+				case
+					when stdev(capped_subtotal) over (PARTITION by CurrencyRateID,
+					SalesPersonID) = 0 then 0
+					else (capped_subtotal - avg(capped_subtotal) over(PARTITION by CurrencyRateID,
+					SalesPersonID)) / stdev(capped_subtotal) over (PARTITION by CurrencyRateID,
+					SalesPersonID)
+				end as cap_z
+			from
+				(
+				select
+					SubTotal,
+					CurrencyRateID,
+					SalesPersonID,
+					TerritoryID,
+					case
+						when subtotal > PERCENTILE_CONT(.98) WITHIN GROUP (
+					order by
+						SubTotal) over () then PERCENTILE_CONT(.98) WITHIN GROUP (
+					order by
+						SubTotal) over ()
+						when subtotal < PERCENTILE_CONT(.02) WITHIN GROUP (
+					order by
+						SubTotal) over () then PERCENTILE_CONT(.05) WITHIN GROUP (
+					order by
+						SubTotal) over ()
+						else SubTotal
+					end as capped_subtotal
+				from
+					sales.SalesOrderHeader) as sq1) sq2) sq3) sq4
 
 
 
